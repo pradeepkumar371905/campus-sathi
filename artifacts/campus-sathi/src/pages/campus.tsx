@@ -17,8 +17,8 @@ import { getBrowserProfileId } from '@/lib/profile';
 
 const ownerId = getBrowserProfileId();
 const sharedQueryKey = getListSharedNotesQueryKey();
-const subjects: NoteSubject[] = ['DSA', 'DBMS', 'OS', 'CN'];
-const subjectNames: Record<NoteSubject, string> = { DSA: 'Data Structures', DBMS: 'Database Systems', OS: 'Operating Systems', CN: 'Computer Networks' };
+const subjects: string[] = ['DSA', 'DBMS', 'OS', 'CN', 'Maths', 'Physics', 'Chemistry', 'Other'];
+const subjectNames: Record<string, string> = { DSA: 'Data Structures', DBMS: 'Database Systems', OS: 'Operating Systems', CN: 'Computer Networks', Maths: 'Maths', Physics: 'Physics', Chemistry: 'Chemistry', Other: 'Other' };
 const bytes = (n: number) => n < 1048576 ? `${Math.max(1, Math.round(n / 1024))} KB` : `${(n / 1048576).toFixed(1)} MB`;
 const date = (d: string) => new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric' }).format(new Date(d));
 
