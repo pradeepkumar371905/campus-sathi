@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "CampusSathi - A Solution for B.Tech Students"
+description = "A study workspace for B.Tech CSE students to upload PDF notes, get focused revision summaries, ask questions grounded in their material, and share notes with juniors."
+version = "1.0.0"
+id = "artifacts/campus-sathi"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18131
+
+[services.development]
+run = "pnpm --filter @workspace/campus-sathi run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/campus-sathi", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/campus-sathi/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18131"
+BASE_PATH = "/"

@@ -1,0 +1,31 @@
+kind = "api"
+previewPath = "/api"
+title = "API Server"
+version = "1.0.0"
+id = "3B4_FFSkEVBkAeYMFRJ2e"
+
+[[services]]
+localPort = 8080
+name = "API Server"
+paths = ["/api"]
+
+[services.development]
+run = "pnpm --filter @workspace/api-server run dev"
+
+[services.production]
+
+[services.production.build]
+args = [".pythonlibs/bin/python3", "-m", "py_compile", "artifacts/api-server/src/flask_app.py"]
+
+[services.production.build.env]
+PYTHONUNBUFFERED = "1"
+
+[services.production.run]
+args = [".pythonlibs/bin/gunicorn", "--bind", "0.0.0.0:8080", "--workers", "2", "--access-logfile", "-", "--chdir", "artifacts/api-server/src", "flask_app:app"]
+
+[services.production.run.env]
+PORT = "8080"
+PYTHONUNBUFFERED = "1"
+
+[services.production.health.startup]
+path = "/api/healthz"

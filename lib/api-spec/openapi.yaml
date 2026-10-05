@@ -1,0 +1,306 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: CampusSathi API for locally stored notes and keyword-based study tools.
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: campusSathi
+    description: Student notes and study tools
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /dashboard:
+    post:
+      operationId: getDashboard
+      tags: [campusSathi]
+      summary: Get the current student's dashboard counts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DashboardInput"
+      responses:
+        "200":
+          description: Dashboard overview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dashboard"
+  /notes:
+    get:
+      operationId: listSharedNotes
+      tags: [campusSathi]
+      summary: List shared notes
+      responses:
+        "200":
+          description: Shared notes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Note"
+    post:
+      operationId: uploadNote
+      tags: [campusSathi]
+      summary: Upload a PDF and create a local keyword-based summary
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/UploadNoteInput"
+      responses:
+        "201":
+          description: Uploaded note and summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Note"
+  /notes/mine:
+    post:
+      operationId: listMyNotes
+      tags: [campusSathi]
+      summary: List notes belonging to the current browser profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MineNotesInput"
+      responses:
+        "200":
+          description: Student's notes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Note"
+  /notes/share:
+    post:
+      operationId: setNoteSharing
+      tags: [campusSathi]
+      summary: Share or unshare a note
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ShareNoteInput"
+      responses:
+        "200":
+          description: Updated note sharing status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Note"
+  /notes/question:
+    post:
+      operationId: askNoteQuestion
+      tags: [campusSathi]
+      summary: Find the most relevant paragraph in one of the student's own notes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuestionInput"
+      responses:
+        "200":
+          description: Matching note paragraph or a not-found message
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnswerResult"
+  /notes/delete:
+    post:
+      operationId: deleteNote
+      tags: [campusSathi]
+      summary: Delete one of the current student's notes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteNoteInput"
+      responses:
+        "204":
+          description: Note deleted
+        "404":
+          description: Note not found
+  /notes/download:
+    post:
+      operationId: downloadNote
+      tags: [campusSathi]
+      summary: Download an owned or shared PDF
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DownloadNoteInput"
+      responses:
+        "200":
+          description: PDF file
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required: [status]
+    Summary:
+      type: object
+      properties:
+        topic:
+          type: string
+        bullets:
+          type: array
+          items:
+            type: string
+        formulas:
+          type: array
+          items:
+            type: string
+        definitions:
+          type: array
+          items:
+            type: string
+        sourceWordCount:
+          type: integer
+      required: [topic, bullets, formulas, definitions, sourceWordCount]
+    Note:
+      type: object
+      properties:
+        id:
+          type: string
+        ownerId:
+          type: string
+        title:
+          type: string
+        subject:
+          type: string
+          enum: [DSA, DBMS, OS, CN]
+        filename:
+          type: string
+        fileSize:
+          type: integer
+        uploadedAt:
+          type: string
+        isShared:
+          type: boolean
+        summary:
+          $ref: "#/components/schemas/Summary"
+      required: [id, ownerId, title, subject, filename, fileSize, uploadedAt, isShared, summary]
+    Dashboard:
+      type: object
+      properties:
+        totalNotes:
+          type: integer
+        sharedNotes:
+          type: integer
+        totalWords:
+          type: integer
+        hoursSaved:
+          type: integer
+      required: [totalNotes, sharedNotes, totalWords, hoursSaved]
+    DashboardInput:
+      type: object
+      properties:
+        ownerId:
+          type: string
+      required: [ownerId]
+    UploadNoteInput:
+      type: object
+      properties:
+        ownerId:
+          type: string
+        title:
+          type: string
+        subject:
+          type: string
+          enum: [DSA, DBMS, OS, CN]
+        file:
+          type: string
+          format: binary
+      required: [ownerId, title, subject, file]
+    MineNotesInput:
+      type: object
+      properties:
+        ownerId:
+          type: string
+      required: [ownerId]
+    ShareNoteInput:
+      type: object
+      properties:
+        ownerId:
+          type: string
+        noteId:
+          type: string
+        isShared:
+          type: boolean
+      required: [ownerId, noteId, isShared]
+    QuestionInput:
+      type: object
+      properties:
+        ownerId:
+          type: string
+        noteId:
+          type: string
+        question:
+          type: string
+          minLength: 1
+      required: [ownerId, noteId, question]
+    DeleteNoteInput:
+      type: object
+      properties:
+        ownerId:
+          type: string
+        noteId:
+          type: string
+      required: [ownerId, noteId]
+    DownloadNoteInput:
+      type: object
+      properties:
+        ownerId:
+          type: string
+        noteId:
+          type: string
+      required: [ownerId, noteId]
+    AnswerResult:
+      type: object
+      properties:
+        answer:
+          type: string
+        found:
+          type: boolean
+        matchedKeywords:
+          type: array
+          items:
+            type: string
+      required: [answer, found, matchedKeywords]
